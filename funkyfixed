@@ -127,6 +127,7 @@ while runService.RenderStepped:wait() do
       end
   end
 end
+
 do 
     function Autoplayer:GetDirection(Position)
         return Variables.Keys[Position - 3] or Variables.Keys[Position + 1]
