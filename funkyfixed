@@ -117,17 +117,6 @@ do
     end
 end
 
-local framework;
-local funcs = {}
-local islclosure = islclosure or is_l_closure
-local getinfo = getinfo or debug.getinfo
-local getupvalues = getupvalues or debug.getupvalues
-local getconstants = getconstants or debug.getconstants
-local marked = {}
-local map = { [0] = 'Left', [1] = 'Down', [2] = 'Up', [3] = 'Right', }
-local keys = { Up = Enum.KeyCode.W; Down = Enum.KeyCode.S; Left = Enum.KeyCode.A; Right = Enum.KeyCode.D; }
-local runService = game:GetService('RunService')
-local fastWait, fastSpawn do
   function fastWait(t)
       local d = 0;
       while d < t do
