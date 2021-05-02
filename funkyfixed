@@ -42,11 +42,6 @@ end
 --// Functions
 
 while runService.RenderStepped:wait() do
-if mode ~= 2 then
-for _, arrow in next, framework.UI.ActiveSections do
-if _ == 1 then
-else
-while runService.RenderStepped:wait() do
   if mode ~= 2 then
       for _, arrow in next, framework.UI.ActiveSections do
           if _ == 1 then
