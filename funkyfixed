@@ -1,6 +1,3 @@
-local mode = 0 -- Starting mode. 0 = Legit, wont hit 100% accurately : 1 = Rage, hits everythings with 100% accuracy : 2 = Disabled
-local maxdelay = .09 -- Maximum delay b4 hitting a note while using legit mode, recomending max is .16, any higher and youll start missing a lot
-
 islclosure = islclosure or is_l_closure
 getgc = getgc or get_gc_objects
 getconstants = getconstants or debug.getconstants
