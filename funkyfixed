@@ -41,6 +41,51 @@ end
 
 --// Functions
 
+local framework;
+local funcs = {}
+local islclosure = islclosure or is_l_closure
+local getinfo = getinfo or debug.getinfo
+local getupvalues = getupvalues or debug.getupvalues
+local getconstants = getconstants or debug.getconstants
+local marked = {}
+local map = { [0] = 'Left', [1] = 'Down', [2] = 'Up', [3] = 'Right', }
+local keys = { Up = Enum.KeyCode.W; Down = Enum.KeyCode.S; Left = Enum.KeyCode.A; Right = Enum.KeyCode.D; }
+local runService = game:GetService('RunService')
+local fastWait, fastSpawn do
+  function fastWait(t)
+      local d = 0;
+      while d < t do
+          d += runService.RenderStepped:wait()
+      end
+  end
+  function fastSpawn(f)
+      coroutine.wrap(f)()
+  end
+end
+
+for i, v in next, getgc(true) do
+  if type(v) == 'table' and rawget(v, 'GameUI') then
+      framework = v;
+  end
+  if type(v) == 'function' and islclosure(v) then
+      local info = getinfo(v);
+      if info.name == '' then continue end
+      if info.source:match('%.Arrows$') then
+          local constants = getconstants(v);
+          if table.find(constants, 'Right') and table.find(constants, 'NewThread') then
+              funcs.KeyDown = v;
+          elseif table.find(constants, 'Multiplier') and table.find(constants, 'MuteVoices') then
+              funcs.KeyUp = v;
+          end
+      end
+  end
+  if framework and funcs.KeyUp and funcs.KeyDown then break end
+end
+if type(framework) ~= 'table' or (not rawget(framework, 'UI')) then
+  return game.Players.LocalPlayer:Kick('Failed to locate framework.')
+elseif (not (funcs.KeyDown and funcs.KeyUp)) then
+  return game.Players.LocalPlayer:Kick('Failed to locate key functions.')
+end
 game:GetService("UserInputService").InputBegan:Connect(function(key,bool)
   if key.KeyCode == Enum.KeyCode.Delete then
       mode = mode + 1
