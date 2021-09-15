@@ -1,312 +1,281 @@
-islclosure = islclosure or is_l_closure
-getgc = getgc or get_gc_objects
-getconstants = getconstants or debug.getconstants
+local library = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Maxgat5/UiLib/main/lua')))()
+local w = library:CreateWindow("Bank Robbery Simulator")
+local b = w:CreateFolder("AutoFarm")
+local f = w:CreateFolder("AutoBuy")
+local e = w:CreateFolder("Mix")
+local u = w:CreateFolder("Credits")
 
-if not islclosure or not getgc or not getconstants then 
-    return game:GetService("Players").LocalPlayer:Kick("Exploit Not Supported")
-end
-
---// Variables
-
-local Autoplayer = {}
-local Variables = {}
-
-do 
-    Variables.Keys = {
-        "Left",
-        "Down",
-        "Up",
-        "Right"
-    }
-
-    Variables.KeyFunctions = {}
-    Variables.Pressed = {}
-    Variables.Constants = {}
-    Variables.NoteAccuracy = {}
-
-    Variables.Constants.DISTANCE_TO_ACCURACY = {
-        ["Sick"] = 0.01,
-        ["Good"] = 0.05,
-        ["Ok"] = 0.15,
-        ["Bad"] = 0.2
-    }
-
-    Variables.Constants.ACCURACY_NAMES = {
-        "Sick", 
-        "Good", 
-        "Ok", 
-        "Bad"
-    }
-end
-
---// Functions
-
-local framework;
-local funcs = {}
-local islclosure = islclosure or is_l_closure
-local getinfo = getinfo or debug.getinfo
-local getupvalues = getupvalues or debug.getupvalues
-local getconstants = getconstants or debug.getconstants
-local marked = {}
-local map = { [0] = 'Left', [1] = 'Down', [2] = 'Up', [3] = 'Right', }
-local keys = { Up = Enum.KeyCode.W; Down = Enum.KeyCode.S; Left = Enum.KeyCode.A; Right = Enum.KeyCode.D; }
-local runService = game:GetService('RunService')
-local fastWait, fastSpawn do
-  function fastWait(t)
-      local d = 0;
-      while d < t do
-          d += runService.RenderStepped:wait()
-      end
-  end
-  function fastSpawn(f)
-      coroutine.wrap(f)()
-  end
-end
-
-function Autoplayer:GetDirection(Position)
-        return Variables.Keys[Position - 3] or Variables.Keys[Position + 1]
-    end 
-
-    function Autoplayer:GetDistance(Time)
-        return math.abs(Time - Variables.Framework.SongPlayer.CurrentlyPlaying.TimePosition)
-    end
-
-    function Autoplayer:IsValidDistance(Distance, Arrow)
-        if Variables.NoteAccuracy[Arrow] then 
-            return Distance <= Variables.NoteAccuracy[Arrow]
-        end
-            
-        local Accuracy = Autoplayer:GetHitAccuracy() 
-
-        Variables.NoteAccuracy[Arrow] = Variables.Constants.DISTANCE_TO_ACCURACY[Accuracy]
-
-        return Distance <= Variables.Constants.DISTANCE_TO_ACCURACY[Accuracy]
-    end 
-
-    function Autoplayer:PressKey(Direction, Arrow)
-        Variables.Pressed[Arrow] = true
-
-        Variables.KeyFunctions.KeyDown(Direction)
-        
-        local ReleaseDelay = shared.Settings.ReleaseDelay / 1000
-
-        if Arrow.Data.Length > 0 then
-            wait(Arrow.Data.Length + ReleaseDelay)
-        else
-            wait(0.05 + ReleaseDelay)
-        end
-
-        Variables.KeyFunctions.KeyUp(Direction)
-
-        Variables.Pressed[Arrow] = nil
-        Variables.NoteAccuracy[Arrow] = nil
-    end
-
-    function Autoplayer:IsPressed(Arrow)
-        return Variables.Pressed[Arrow]
-    end
-        
-    function Autoplayer:GetHitAccuracy()
-        local Percentages = shared.Settings.Percentages
-        local Total = 0 
-        
-        local ChanceData = {} 
-        local ACCURACY_NAMES = Variables.Constants.ACCURACY_NAMES
-        
-        for Index = 1, #ACCURACY_NAMES do 
-            local Name = ACCURACY_NAMES[Index] 
-            
-            if Percentages[Name] > 0 then 
-                ChanceData[Percentages[Name]] = Name 
-            end
-        end
-        
-        local Entries = {} 
-        
-        for Index, Chance in next, ChanceData do 
-            Entries[Chance] = {Min = Total, Max = Total + Index} 
-            Total = Total + Index 
-        end
-        
-        local Percentage = math.random(0, 100) 
-        
-        for Index, Entry in next, Entries do 
-            if Entry.Min <= Percentage and Entry.Max >= Percentage then 
-                return Index
-            end
-        end 
-    end
-end
-
-for i, v in next, getgc(true) do
-  if type(v) == 'table' and rawget(v, 'GameUI') then
-      framework = v;
-  end
-  if type(v) == 'function' and islclosure(v) then
-      local info = getinfo(v);
-      if info.name == '' then continue end
-      if info.source:match('%.Arrows$') then
-          local constants = getconstants(v);
-          if table.find(constants, 'Right') and table.find(constants, 'NewThread') then
-              funcs.KeyDown = v;
-          elseif table.find(constants, 'Multiplier') and table.find(constants, 'MuteVoices') then
-              funcs.KeyUp = v;
-          end
-      end
-  end
-  if framework and funcs.KeyUp and funcs.KeyDown then break end
-end
-if type(framework) ~= 'table' or (not rawget(framework, 'UI')) then
-  return game.Players.LocalPlayer:Kick('Failed to locate framework.')
-elseif (not (funcs.KeyDown and funcs.KeyUp)) then
-  return game.Players.LocalPlayer:Kick('Failed to locate key functions.')
-end
-game:GetService("UserInputService").InputBegan:Connect(function(key,bool)
-  if key.KeyCode == Enum.KeyCode.Delete then
-      mode = mode + 1
-      if mode == 1 then
-          print("Mode changed to rage")
-      elseif mode == 2 then
-          print("Mode changed to disabled")
-      elseif mode == 3 then
-          mode = 0; print("Mode changed to legit")
-      end
-  end
+b:Toggle("AutoCollectDrop",function(bool)
+    shared.toggle = bool
+    AutoCollectDrop = bool
 end)
-while runService.RenderStepped:wait() do
-  if mode ~= 2 then
-      for _, arrow in next, framework.UI.ActiveSections do
-          if _ == 1 then
-          else
-              if arrow.Side ~= framework.UI.CurrentSide then continue end
-              if marked[arrow] then continue end
-              local index = arrow.Data.Position % 4
-              local position = map[index]
-              if (not position) then continue end
-              local distance = (1 - math.abs(arrow.Data.Time - framework.SongPlayer.CurrentlyPlaying.TimePosition)) * 100
-              if distance >= 95 then
-                  marked[arrow] = true;
-                  fastSpawn(function()
-                      if mode == 0 then wait(Random.new():NextNumber(0.02, maxdelay)) else end
-                      funcs.KeyDown(position)
-                      if arrow.Data.Length > 0 then
-                          fastWait(arrow.Data.Length)
-                      else
-                          fastWait(0.05)
-                      end
-                      funcs.KeyUp(position)
-                      marked[arrow] = nil
-                  end)
-              end
-          end
-      end
-  end
-end
 
-    function Autoplayer:GetDirection(Position)
-        return Variables.Keys[Position - 3] or Variables.Keys[Position + 1]
-    end 
+b:Toggle("AutoSell",function(bool)
+    shared.toggle = bool
+    AutoSell = bool
+end)
 
-    function Autoplayer:GetDistance(Time)
-        return math.abs(Time - Variables.Framework.SongPlayer.CurrentlyPlaying.TimePosition)
-    end
+f:Toggle("Bag",function(bool)
+    shared.toggle = bool
+    UpgradeBag = bool
+end)
 
-    function Autoplayer:IsValidDistance(Distance, Arrow)
-        if Variables.NoteAccuracy[Arrow] then 
-            return Distance <= Variables.NoteAccuracy[Arrow]
-        end
-            
-        local Accuracy = Autoplayer:GetHitAccuracy() 
+e:Toggle("AntiAfk",function(bool)
+    shared.toggle = bool
+    AntiAfk = bool
+end)
 
-        Variables.NoteAccuracy[Arrow] = Variables.Constants.DISTANCE_TO_ACCURACY[Accuracy]
-
-        return Distance <= Variables.Constants.DISTANCE_TO_ACCURACY[Accuracy]
-    end 
-
-    function Autoplayer:PressKey(Direction, Arrow)
-        Variables.Pressed[Arrow] = true
-
-        Variables.KeyFunctions.KeyDown(Direction)
-        
-        local ReleaseDelay = shared.Settings.ReleaseDelay / 1000
-
-        if Arrow.Data.Length > 0 then
-            wait(Arrow.Data.Length + ReleaseDelay)
-        else
-            wait(0.05 + ReleaseDelay)
-        end
-
-        Variables.KeyFunctions.KeyUp(Direction)
-
-        Variables.Pressed[Arrow] = nil
-        Variables.NoteAccuracy[Arrow] = nil
-    end
-
-    function Autoplayer:IsPressed(Arrow)
-        return Variables.Pressed[Arrow]
-    end
-        
-    function Autoplayer:GetHitAccuracy()
-        local Percentages = shared.Settings.Percentages
-        local Total = 0 
-        
-        local ChanceData = {} 
-        local ACCURACY_NAMES = Variables.Constants.ACCURACY_NAMES
-        
-        for Index = 1, #ACCURACY_NAMES do 
-            local Name = ACCURACY_NAMES[Index] 
-            
-            if Percentages[Name] > 0 then 
-                ChanceData[Percentages[Name]] = Name 
-            end
-        end
-        
-        local Entries = {} 
-        
-        for Index, Chance in next, ChanceData do 
-            Entries[Chance] = {Min = Total, Max = Total + Index} 
-            Total = Total + Index 
-        end
-        
-        local Percentage = math.random(0, 100) 
-        
-        for Index, Entry in next, Entries do 
-            if Entry.Min <= Percentage and Entry.Max >= Percentage then 
-                return Index
-            end
-        end 
-    end
-end
-
---// Init GC loop
-
-for Index, Value in next, getgc(true) do
-    if type(Value) == "table" and rawget(Value, "GameUI") then
-        Variables.Framework = Value
-    elseif type(Value) == "function" and islclosure(Value) and tostring(getfenv(Value).script) == "Arrows" then
-		local Constants = getconstants(Value)
-		 
-		if table.find(Constants, "CurrentScore") and table.find(Constants, "Data") then 
-			Variables.KeyFunctions.KeyUp = Value 
-		elseif table.find(Constants, "NewThread") and table.find(Constants, "Section") then
-			Variables.KeyFunctions.KeyDown = Value 
-		end 
-    end
-end
-
---// Main autoplayer loop
-
-game:GetService("RunService").Heartbeat:Connect(function()
-    if shared.Settings.Autoplay then
-        for Index, Arrow in next, Variables.Framework.UI.ActiveSections do
-            if Arrow.Side == Variables.Framework.UI.CurrentSide then 
-                local Direction = Autoplayer:GetDirection(Arrow.Data.Position)
-                local Distance = Autoplayer:GetDistance(Arrow.Data.Time)
-
-                if Autoplayer:IsValidDistance(Distance, Arrow) and not Autoplayer:IsPressed(Arrow) then 
-                    Autoplayer:PressKey(Direction, Arrow)
+e:Button("Delete Kill Parts (Bank)",function()
+    for i,v in pairs(game:GetService("Workspace").Areas:GetChildren()) do
+        for i1,v1 in pairs(v.Banks:GetChildren()) do
+            for i2,v2 in pairs(v1:GetDescendants()) do
+                if string.find(v2.Name,"Lava") or string.find(v2.Name,"Moving") then
+                    v2:Destroy()
                 end
-            end 
+            end
         end
     end
+end)
+
+e:Button("Finish Bank (Trun Off AutoCollectDrop)",function()
+    if game:GetService("Players").LocalPlayer.PlayerGui.Gui.SideButtons.LeaveBank.Visible == true then
+        function ClosestPart()
+            local dist = math.huge
+            local target = nil
+            for i,v in pairs(game:GetService("Workspace").Areas:GetChildren()) do
+                for i1,v1 in pairs(v.Banks:GetChildren()) do
+                    for i2,v2 in pairs(v1.ImportantParts:GetChildren()) do
+                        if v2.ClassName == "Model" then
+                            if v2.Door.Transparency == 0 then
+                                local magnitude = (v2.Door.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                                if magnitude < dist then
+                                    dist = magnitude
+                                    target = v2.Parent
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            return target
+        end
+        sheesh = {}
+        for i,v in pairs(ClosestPart():GetChildren()) do
+            if v.ClassName == "Model" then
+                if string.find(v.Name,"Door") then
+                    if not string.find(v.Name,"Secret") then
+                        a = string.gsub(v.Name,"Door","")
+                        table.insert(sheesh,a)
+                    end
+                end
+            end
+        end
+        table.sort(sheesh)
+        for i=1,#sheesh do
+            pcall(function()
+                for i1,v in pairs(ClosestPart():GetChildren()) do
+                    if v.ClassName == "Model" then
+                        if v.Name == "Door"..sheesh[i] then
+                            repeat wait()
+                                string = string.gsub(v.Circle.GUIs.HealthInfo.Frame.Amount.Text,"HP","")
+                                a,b = string:match("(.+)/(.+)")
+                                if a ~= 0 then
+                                    if game:GetService("Players").LocalPlayer.PlayerGui.Gui.SideButtons.LeaveBank.Visible == true then
+                                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(v.Door.CFrame.Position + Vector3.new(0,0,0))
+                                        wait(.1)
+                                        fireproximityprompt(v.Door.Prompt.ProximityPrompt,0)
+                                        fireproximityprompt(v.Door.Prompt.ProximityPrompt,1)
+                                        wait(.1)
+                                    else
+                                        game:GetService("Players").LocalPlayer.Character.Humanoid.Health = 0
+                                    end
+                                end
+                            until v.Door.Transparency == 1
+                        end
+                    end
+                end
+            end)
+        end
+        for i1,v in pairs(ClosestPart():GetChildren()) do
+            if v.ClassName == "Model" then
+                if v.Name == "Vault" then
+                    string = string.gsub(v.Circle.GUIs.HealthInfo.Frame.Amount.Text,"HP","")
+                    a,b = string:match("(.+)/(.+)")
+                    if a ~= 0 then
+                        if game:GetService("Players").LocalPlayer.PlayerGui.Gui.SideButtons.LeaveBank.Visible == true then
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(v.Door.CFrame.Position + Vector3.new(0,0,0))
+                            wait(.1)
+                        else
+                            game:GetService("Players").LocalPlayer.Character.Humanoid.Health = 0
+                        end
+                    end
+                end
+            end
+        end
+    else
+        game:GetService("Players").LocalPlayer.Character.Humanoid.Health = 0
+    end
+end)
+
+--Credits
+u:Button(game:service("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Maxgat5/Decode/main/JSON")).username,function()
+    setclipboard(game:service("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Maxgat5/Decode/main/JSON")).username)
+end)
+ 
+u:Button("Discord Server",function()
+    setclipboard(game:service("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Maxgat5/Decode/main/JSON")).discord)
+end)
+
+game:GetService('RunService').Stepped:connect(function()
+    spawn(function()
+        pcall(function()
+            if AutoCollectDrop == true then
+                function ClosestPart()
+                    local dist = 30000
+                    local target = nil
+                    for i,v in pairs(game:GetService("Workspace").Areas:GetChildren()) do
+                        for i1,v1 in pairs(v.PickupItems:GetChildren()) do
+                            local magnitude = (v1.Main.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                            if magnitude < dist then
+                                dist = magnitude
+                                target = v1
+                            end
+                        end
+                    end
+                    return target
+                end
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, ClosestPart().Main, 1)
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, ClosestPart().Main, 0)
+            end
+        end)
+    end)
+    
+    spawn(function()
+        pcall(function()
+            if AutoSell == true then
+                numbers = {}
+                for i,v in pairs(game:GetService("Workspace").Areas:GetChildren()) do
+                    table.insert(numbers,v.Name)
+                end
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService("Workspace").Areas[math.max(table.unpack(numbers))].Sell, 0)
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService("Workspace").Areas[math.max(table.unpack(numbers))].Sell, 1)
+            end
+        end)
+    end)
+    
+    spawn(function()
+        pcall(function()
+            if UpgradeBag == true then
+                local Cost = string.gsub(game:GetService("Players").LocalPlayer.PlayerGui.Menus.Upgrade.Button.Coins.Amount.Text,"COST: ","") 
+                if tonumber(Cost) <= tonumber(game:GetService("Players").LocalPlayer.PlayerGui.Gui.Coins.Amount.Text) then
+                    function ClosestPart()
+                        local dist = math.huge
+                        local target = nil
+                        for i,v in pairs(game:GetService("Workspace").Areas:GetChildren()) do
+                            local magnitude = (v.Upgrade.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                            if magnitude < dist then
+                                dist = magnitude
+                                target = v
+                            end
+                        end
+                        return target
+                    end
+                    function ClosestPart1()
+                        local dist = math.huge
+                        local target = nil
+                        local sheeeesh = {}
+                        for i,v in pairs(ClosestPart():GetChildren()) do
+                            table.insert(sheeeesh,v.Name)
+                        end
+                        if not string.find(table.concat(sheeeesh),"Giant") then
+                            for i,v in pairs(ClosestPart():GetChildren()) do
+                                if v.Name == "Upgrade" then
+                                    local magnitude = (v.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                                    if magnitude < dist then
+                                        dist = magnitude
+                                        target = v
+                                    end
+                                end
+                            end
+                        end
+                        if string.find(table.concat(sheeeesh),"Giant") then
+                            if game:GetService("Workspace").Areas:FindFirstChild(ClosestPart().Name - 1) then
+                                local area = ClosestPart().Name - 1
+                                local sheeeesh1 = {}
+                                for i,v in pairs(game:GetService("Workspace").Areas[area]:GetChildren()) do
+                                    table.insert(sheeeesh1,v.Name)
+                                end
+                                if not string.find(table.concat(sheeeesh1),"Giant") then
+                                    for i,v in pairs(game:GetService("Workspace").Areas[area]:GetChildren()) do
+                                        if v.Name == "Upgrade" then
+                                            local magnitude = (v.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                                            if magnitude < dist then
+                                                dist = magnitude
+                                                target = game:GetService("Workspace").Areas[area + 1].Upgrade
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if string.find(table.concat(sheeeesh),"Giant") then
+                            if not game:GetService("Workspace").Areas:FindFirstChild(ClosestPart().Name - 1) then
+                                for i,v in pairs(game:GetService("Workspace").Areas[ClosestPart().Name]:GetChildren()) do
+                                    if v.Name == "Upgrade" then
+                                        local magnitude = (v.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                                        if magnitude < dist then
+                                            dist = magnitude
+                                            target = game:GetService("Workspace").Areas[ClosestPart().Name].Upgrade
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if string.find(table.concat(sheeeesh),"Giant") then
+                            if game:GetService("Workspace").Areas:FindFirstChild(ClosestPart().Name - 1) then
+                                local area = ClosestPart().Name - 1
+                                local sheeeesh1 = {}
+                                for i,v in pairs(game:GetService("Workspace").Areas[area]:GetChildren()) do
+                                    table.insert(sheeeesh1,v.Name)
+                                end
+                                if string.find(table.concat(sheeeesh1),"Giant") then
+                                    if game:GetService("Workspace").Areas:FindFirstChild(ClosestPart().Name - 2) then
+                                        local area1 = ClosestPart().Name - 2
+                                        local sheeeesh2 = {}
+                                        for i,v in pairs(game:GetService("Workspace").Areas[area1]:GetChildren()) do
+                                            table.insert(sheeeesh2,v.Name)
+                                        end
+                                        if not string.find(table.concat(sheeeesh2),"Giant") then
+                                            for i,v in pairs(game:GetService("Workspace").Areas[area1]:GetChildren()) do
+                                                if v.Name == "Upgrade" then
+                                                    local magnitude = (v.Position - game:GetService("Players").LocalPlayer.Character.Head.Position).magnitude
+                                                    if magnitude < dist then
+                                                        dist = magnitude
+                                                        target = game:GetService("Workspace").Areas[area1 + 1].Upgrade
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        return target
+                    end
+                    pcall(function()
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(ClosestPart1().CFrame.Position + Vector3.new(0,0,0))
+                        game:GetService("ReplicatedStorage").Events.UIAction:FireServer("UpgradeBag",ClosestPart1())
+                    end)
+                end
+            end
+        end)
+    end)
+    
+    spawn(function()
+        if AntiAfk == true then
+            local bb=game:service'VirtualUser'
+            bb:CaptureController()
+            bb:ClickButton2(Vector2.new())
+        end
+    end)
 end)
